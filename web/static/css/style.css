@@ -1,0 +1,548 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --bg-color: #1a1a2e;
+    --surface-color: #16213e;
+    --primary-color: #0f3460;
+    --accent-color: #e94560;
+    --text-color: #eaeaea;
+    --text-muted: #a0a0a0;
+    --success-color: #4ade80;
+    --warning-color: #fbbf24;
+    --border-radius: 12px;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    background: var(--bg-color);
+    color: var(--text-color);
+    min-height: 100vh;
+    line-height: 1.6;
+}
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 40px;
+    padding: 30px;
+    background: var(--surface-color);
+    border-radius: var(--border-radius);
+}
+
+header h1 {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+    background: linear-gradient(135deg, var(--accent-color), #ff6b6b);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.device-info {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    color: var(--text-muted);
+}
+
+.platform-badge {
+    background: var(--primary-color);
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    text-transform: capitalize;
+}
+
+.section {
+    background: var(--surface-color);
+    border-radius: var(--border-radius);
+    padding: 25px;
+    margin-bottom: 20px;
+}
+
+.section h2 {
+    font-size: 1.25rem;
+    margin-bottom: 20px;
+    color: var(--text-color);
+}
+
+.empty-state {
+    color: var(--text-muted);
+    text-align: center;
+    padding: 30px;
+}
+
+.peers-list, .transfers-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.peer-card, .transfer-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 15px 20px;
+    background: var(--primary-color);
+    border-radius: 8px;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.peer-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.peer-info, .transfer-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.peer-icon {
+    width: 45px;
+    height: 45px;
+    background: var(--accent-color);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+
+.peer-details h3, .transfer-details h3 {
+    font-size: 1rem;
+    margin-bottom: 2px;
+}
+
+.peer-details p, .transfer-details p {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    font-weight: 500;
+    transition: background 0.2s, transform 0.1s;
+}
+
+.btn:active {
+    transform: scale(0.98);
+}
+
+.btn-primary {
+    background: var(--accent-color);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #d63d55;
+}
+
+.btn-primary:disabled {
+    background: #666;
+    cursor: not-allowed;
+}
+
+.btn-secondary {
+    background: var(--primary-color);
+    color: var(--text-color);
+}
+
+.btn-secondary:hover {
+    background: #1a4d7c;
+}
+
+.btn-success {
+    background: var(--success-color);
+    color: #1a1a2e;
+}
+
+.btn-danger {
+    background: var(--accent-color);
+    color: white;
+}
+
+.transfer-actions {
+    display: flex;
+    gap: 10px;
+}
+
+/* Modal */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal.hidden {
+    display: none;
+}
+
+.modal-content {
+    background: var(--surface-color);
+    border-radius: var(--border-radius);
+    width: 90%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border-bottom: 1px solid var(--primary-color);
+}
+
+.modal-header h3 {
+    font-size: 1.2rem;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 1.5rem;
+    cursor: pointer;
+}
+
+.close-btn:hover {
+    color: var(--text-color);
+}
+
+.modal-body {
+    padding: 20px;
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 20px;
+    border-top: 1px solid var(--primary-color);
+}
+
+/* Drop zone */
+.drop-zone {
+    border: 2px dashed var(--primary-color);
+    border-radius: 8px;
+    padding: 40px 20px;
+    text-align: center;
+    transition: border-color 0.2s, background 0.2s;
+}
+
+.drop-zone.dragover {
+    border-color: var(--accent-color);
+    background: rgba(233, 69, 96, 0.1);
+}
+
+.drop-zone p {
+    margin-bottom: 10px;
+    color: var(--text-muted);
+}
+
+.drop-zone input[type="file"] {
+    display: none;
+}
+
+.selected-files {
+    margin-top: 20px;
+}
+
+.selected-files ul {
+    list-style: none;
+    margin-top: 10px;
+}
+
+.selected-files li {
+    padding: 8px 12px;
+    background: var(--primary-color);
+    border-radius: 4px;
+    margin-bottom: 5px;
+    font-size: 0.9rem;
+}
+
+/* Progress */
+.progress-container {
+    margin-top: 20px;
+}
+
+.progress-bar {
+    height: 8px;
+    background: var(--primary-color);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: var(--accent-color);
+    width: 0%;
+    transition: width 0.3s;
+}
+
+.progress-container p {
+    margin-top: 10px;
+    text-align: center;
+    color: var(--text-muted);
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* Status badges */
+.status-badge {
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.status-pending {
+    background: var(--warning-color);
+    color: #1a1a2e;
+}
+
+.status-completed {
+    background: var(--success-color);
+    color: #1a1a2e;
+}
+
+.status-failed {
+    background: var(--accent-color);
+    color: white;
+}
+
+/* Connection Status */
+.header-top {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.connection-status {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    transition: background 0.3s;
+}
+
+.connection-status.connected {
+    background: var(--success-color);
+    box-shadow: 0 0 8px var(--success-color);
+}
+
+.connection-status.disconnected {
+    background: var(--accent-color);
+    box-shadow: 0 0 8px var(--accent-color);
+}
+
+/* Editable device name */
+.editable {
+    cursor: pointer;
+    border-bottom: 1px dashed var(--text-muted);
+}
+
+.editable:hover {
+    color: var(--accent-color);
+    border-color: var(--accent-color);
+}
+
+/* Room Actions */
+.room-actions {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.btn-small {
+    padding: 6px 14px;
+    font-size: 0.85rem;
+}
+
+/* Room Code Display */
+.room-code {
+    font-family: 'Courier New', monospace;
+    font-size: 2.5rem;
+    font-weight: bold;
+    letter-spacing: 8px;
+    color: var(--accent-color);
+    background: var(--primary-color);
+    padding: 20px 30px;
+    border-radius: 8px;
+    margin: 20px 0;
+}
+
+/* Room Code Input */
+.room-code-input {
+    width: 100%;
+    font-family: 'Courier New', monospace;
+    font-size: 1.5rem;
+    text-align: center;
+    letter-spacing: 8px;
+    text-transform: uppercase;
+    padding: 15px;
+    background: var(--primary-color);
+    border: 2px solid var(--primary-color);
+    border-radius: 8px;
+    color: var(--text-color);
+    margin-top: 10px;
+}
+
+.room-code-input:focus {
+    outline: none;
+    border-color: var(--accent-color);
+}
+
+.room-code-input::placeholder {
+    color: var(--text-muted);
+    letter-spacing: 8px;
+}
+
+/* Small Modal */
+.modal-small {
+    max-width: 380px;
+}
+
+/* Text utilities */
+.text-center {
+    text-align: center;
+}
+
+.text-muted {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+/* Notifications */
+.notifications {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 2000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-width: 350px;
+}
+
+.notification {
+    background: var(--surface-color);
+    padding: 15px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    animation: slideIn 0.3s ease-out;
+    border-left: 4px solid var(--accent-color);
+}
+
+.notification.info {
+    border-left-color: var(--primary-color);
+}
+
+.notification.error {
+    border-left-color: var(--accent-color);
+}
+
+.notification.success {
+    border-left-color: var(--success-color);
+}
+
+.notification.fade-out {
+    animation: fadeOut 0.3s ease-out forwards;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+    }
+    to {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+}
+
+/* Transfer progress in cards */
+.transfer-card .transfer-progress {
+    margin-top: 10px;
+    width: 100%;
+}
+
+.transfer-card .progress-bar {
+    height: 6px;
+}
+
+.file-names {
+    font-size: 0.8rem;
+    max-width: 300px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+    .container {
+        padding: 10px;
+    }
+
+    header {
+        padding: 20px;
+    }
+
+    header h1 {
+        font-size: 2rem;
+    }
+
+    .peer-card, .transfer-card {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+    }
+
+    .peer-info, .transfer-info {
+        flex-direction: column;
+    }
+
+    .transfer-actions {
+        width: 100%;
+        justify-content: center;
+    }
+}

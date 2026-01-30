@@ -8,51 +8,48 @@ import (
 	"net/http"
 	"time"
 
-	"Peer-Drop/internal/discovery"
-	"Peer-Drop/internal/transfer"
+	"Peer-Drop/internal/signaling"
 	"Peer-Drop/web"
 )
 
 type Server struct {
-	httpServer      *http.Server
-	peerRegistry    *discovery.PeerRegistry
-	transferManager *transfer.Manager
-	transferHandler *transfer.Handler
-	logger          *slog.Logger
+	httpServer *http.Server
+	hub        *signaling.Hub
+	logger     *slog.Logger
+	port       int
 }
 
-func New(port int, peerRegistry *discovery.PeerRegistry, transferManager *transfer.Manager, downloadDir string, logger *slog.Logger) *Server {
+func New(port int, logger *slog.Logger) *Server {
+	hub := signaling.NewHub(logger)
+
 	s := &Server{
-		peerRegistry:    peerRegistry,
-		transferManager: transferManager,
-		transferHandler: transfer.NewHandler(transferManager, downloadDir, logger),
-		logger:          logger,
+		hub:    hub,
+		logger: logger,
+		port:   port,
 	}
 
 	mux := http.NewServeMux()
 	s.setupRoutes(mux)
 
 	s.httpServer = &http.Server{
-		Addr:         fmt.Sprintf(":%d", port),
-		Handler:      corsMiddleware(logMiddleware(mux, logger)),
-		ReadTimeout:  30 * time.Second,
-		WriteTimeout: 0, // No timeout for file uploads
-		IdleTimeout:  120 * time.Second,
+		Addr:        fmt.Sprintf(":%d", port),
+		Handler:     corsMiddleware(logMiddleware(mux, logger)),
+		ReadTimeout: 30 * time.Second,
+		IdleTimeout: 120 * time.Second,
 	}
+
+	// Start room cleanup
+	hub.StartCleanup(5 * time.Minute)
 
 	return s
 }
 
 func (s *Server) setupRoutes(mux *http.ServeMux) {
+	// WebSocket endpoint
+	mux.HandleFunc("GET /ws", s.hub.HandleWebSocket)
+
 	// API routes
-	mux.HandleFunc("GET /api/info", s.handleInfo)
-	mux.HandleFunc("GET /api/peers", s.handlePeers)
-	mux.HandleFunc("POST /api/transfer/request", s.transferHandler.HandleRequest)
-	mux.HandleFunc("POST /api/transfer/{id}/accept", s.transferHandler.HandleAccept)
-	mux.HandleFunc("POST /api/transfer/{id}/reject", s.transferHandler.HandleReject)
-	mux.HandleFunc("POST /api/transfer/{id}/upload", s.transferHandler.HandleUpload)
-	mux.HandleFunc("GET /api/transfer/{id}/status", s.transferHandler.HandleStatus)
-	mux.HandleFunc("GET /api/transfers", s.transferHandler.HandleList)
+	mux.HandleFunc("GET /api/stats", s.handleStats)
 
 	// Static files and web UI
 	mux.Handle("GET /static/", http.FileServer(http.FS(web.Assets)))
@@ -68,25 +65,10 @@ func (s *Server) Shutdown(ctx context.Context) error {
 	return s.httpServer.Shutdown(ctx)
 }
 
-func (s *Server) handleInfo(w http.ResponseWriter, r *http.Request) {
-	self := s.peerRegistry.Self()
-
+func (s *Server) handleStats(w http.ResponseWriter, r *http.Request) {
+	stats := s.hub.Stats()
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]interface{}{
-		"id":       self.ID,
-		"name":     self.Name,
-		"port":     self.Port,
-		"platform": self.Platform,
-	})
-}
-
-func (s *Server) handlePeers(w http.ResponseWriter, r *http.Request) {
-	peers := s.peerRegistry.GetActive(discovery.PeerTTL)
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]interface{}{
-		"peers": peers,
-	})
+	json.NewEncoder(w).Encode(stats)
 }
 
 func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
@@ -124,10 +106,13 @@ func logMiddleware(next http.Handler, logger *slog.Logger) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
 		next.ServeHTTP(w, r)
-		logger.Debug("request",
-			"method", r.Method,
-			"path", r.URL.Path,
-			"remote", r.RemoteAddr,
-			"duration", time.Since(start))
+		// Don't log WebSocket upgrades (they log separately)
+		if r.URL.Path != "/ws" {
+			logger.Debug("request",
+				"method", r.Method,
+				"path", r.URL.Path,
+				"remote", r.RemoteAddr,
+				"duration", time.Since(start))
+		}
 	})
 }
